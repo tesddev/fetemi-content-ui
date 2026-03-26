@@ -2,34 +2,11 @@ import React, { useState } from 'react';
 import { ChevronDown, Clock, Send } from 'lucide-react';
 
 interface DraftReviewProps {
+  drafts: any[];
   onNext: () => void;
 }
 
-const DRAFTS = [
-  {
-    id: 'd1',
-    title: 'The "Problem Framer" Approach',
-    angle: 'Problem Framer',
-    meta: 'Focuses on the pain point of generic content in 2026.',
-    excerpt: 'Is your personal brand lost in the noise? Here is why most professionals fail at standing out...',
-  },
-  {
-    id: 'd2',
-    title: 'The Value-Driven Guide',
-    angle: 'Direct Value',
-    meta: 'Actionable steps to immediately upgrade a personal brand.',
-    excerpt: '3 underrated strategies to build a brand that actually converts followers into clients...',
-  },
-  {
-    id: 'd3',
-    title: 'The Contrarian Take',
-    angle: 'Contrarian',
-    meta: 'Challenges the status quo of posting everyday.',
-    excerpt: 'Stop posting every day. Here is why high-volume content is killing your reach...',
-  }
-];
-
-const DraftReview: React.FC<DraftReviewProps> = ({ onNext }) => {
+const DraftReview: React.FC<DraftReviewProps> = ({ drafts, onNext }) => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [actionType, setActionType] = useState('publish_now');
   const [loading, setLoading] = useState(false);
@@ -42,7 +19,7 @@ const DraftReview: React.FC<DraftReviewProps> = ({ onNext }) => {
     setError('');
 
     try {
-      const response = await fetch('https://cohort2pod2.app.n8n.cloud/webhook/draft-select', {
+      const response = await fetch('https://cohort2pod2.app.n8n.cloud/webhook-test/draft-select', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -63,6 +40,11 @@ const DraftReview: React.FC<DraftReviewProps> = ({ onNext }) => {
     }
   };
 
+  const getExcerpt = (draft: any) => {
+    const text = draft.excerpt || draft.content || draft.body || '';
+    return text.length > 200 ? text.substring(0, 200) + '...' : text;
+  };
+
   return (
     <div className="screen draft-screen">
       <div className="screen-header">
@@ -71,22 +53,22 @@ const DraftReview: React.FC<DraftReviewProps> = ({ onNext }) => {
       </div>
 
       <div className="draft-grid">
-        {DRAFTS.map((draft) => (
+        {drafts.map((draft, idx) => (
           <div 
-            key={draft.id} 
-            className={`card draft-card ${selectedId === draft.id ? 'selected' : ''}`}
-            onClick={() => setSelectedId(draft.id)}
+            key={draft.id || idx} 
+            className={`card draft-card ${selectedId === (draft.id || String(idx)) ? 'selected' : ''}`}
+            onClick={() => setSelectedId(draft.id || String(idx))}
           >
             <div className="draft-card-header">
-              <span className="angle-badge">{draft.angle}</span>
+              <span className="angle-badge">{draft.angle || 'Draft'}</span>
               <div className="radio-circle">
-                {selectedId === draft.id && <div className="radio-inner" />}
+                {selectedId === (draft.id || String(idx)) && <div className="radio-inner" />}
               </div>
             </div>
-            <h3>{draft.title}</h3>
-            <p className="meta-desc">{draft.meta}</p>
+            <h3>{draft.title || draft.headline}</h3>
+            <p className="meta-desc">{draft.meta || draft.description}</p>
             <div className="excerpt">
-              <p>"{draft.excerpt}"</p>
+              <p>"{getExcerpt(draft)}"</p>
             </div>
           </div>
         ))}

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Sparkles, Link as LinkIcon, FileText } from 'lucide-react';
 
 interface ContentInputProps {
-  onNext: () => void;
+  onNext: (data: any) => void;
 }
 
 const ContentInput: React.FC<ContentInputProps> = ({ onNext }) => {
@@ -17,12 +17,13 @@ const ContentInput: React.FC<ContentInputProps> = ({ onNext }) => {
       setError('Please provide at least a content idea or a source URL.');
       return;
     }
-    
+
     setError('');
     setLoading(true);
 
     try {
-      const response = await fetch('https://cohort2pod2.app.n8n.cloud/webhook/content-submit', {
+      // const response = await fetch('https://cohort2pod2.app.n8n.cloud/webhook/content-submit', {
+      const response = await fetch('https://cohort2pod2.app.n8n.cloud/webhook-test/content-submit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -35,7 +36,8 @@ const ContentInput: React.FC<ContentInputProps> = ({ onNext }) => {
         throw new Error('Network response was not ok');
       }
 
-      onNext();
+      const data = await response.json();
+      onNext(data);
     } catch (err) {
       setError('Failed to generate drafts. Please try again.');
     } finally {
@@ -50,7 +52,7 @@ const ContentInput: React.FC<ContentInputProps> = ({ onNext }) => {
           <h2>Create New Content</h2>
           <p>Provide a starting point to generate AI-crafted drafts for your platforms.</p>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="input-form">
           <div className="form-group">
             <label htmlFor="contentIdea">
@@ -85,8 +87,8 @@ const ContentInput: React.FC<ContentInputProps> = ({ onNext }) => {
           {error && <div className="error-message">{error}</div>}
 
           <div className="form-actions">
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="btn btn-primary generate-btn"
               disabled={loading}
             >
