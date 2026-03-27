@@ -1,127 +1,127 @@
-import React, { useState } from 'react';
-import { Linkedin, Twitter, Mail, ArrowLeft, Send } from 'lucide-react';
+import React from 'react';
+import { Linkedin, Twitter, Mail, CheckCircle, RefreshCw } from 'lucide-react';
 
 interface ReviewPublishProps {
-  onBack: () => void;
+  content: any;
+  onNew: () => void;
 }
 
-const ReviewPublish: React.FC<ReviewPublishProps> = ({ onBack }) => {
-  const [publishing, setPublishing] = useState(false);
-  const [published, setPublished] = useState(false);
+const ReviewPublish: React.FC<ReviewPublishProps> = ({ content, onNew }) => {
+  // If the webhook didn't return anything or mapping failed, fallback gracefully
+  const safeContent = content || {};
 
-  const handlePublish = async () => {
-    setPublishing(true);
-    // Simulate publish request
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setPublishing(false);
-    setPublished(true);
-  };
+  // Try to pick up obvious keys for the platforms, or just show everything
+  const linkedinContent = safeContent.linkedin_post || safeContent.linkedin || safeContent.linkedin_body;
+  const twitterContent = safeContent.twitter_thread || safeContent.twitter || safeContent.tweets;
+  const emailContent = safeContent.email_newsletter || safeContent.email || safeContent.email_body || safeContent.newsletter;
+  
+  const hasSpecifics = linkedinContent || twitterContent || emailContent;
 
-  if (published) {
-    return (
-      <div className="screen success-screen">
-        <div className="card success-card">
-          <div className="success-icon">✓</div>
-          <h2>Content Published Successfully!</h2>
-          <p>Your posts have been distributed across your platforms.</p>
-          <button className="btn btn-primary" onClick={() => window.location.reload()}>Start New</button>
+  const renderGenericPanels = () => {
+    return Object.entries(safeContent).map(([key, value], idx) => (
+      <div className="card platform-panel" key={idx} style={{ flex: '1 1 300px' }}>
+        <div className="panel-header" style={{ textTransform: 'capitalize' }}>
+          <CheckCircle size={20} className="text-success" /> {key.replace(/_/g, ' ')}
+        </div>
+        <div className="panel-content">
+          <div className="mock-post">
+            <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'var(--font-family)', margin: 0 }}>
+              {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
+            </pre>
+          </div>
         </div>
       </div>
-    );
-  }
+    ));
+  };
 
   return (
     <div className="screen review-screen">
-      <div className="screen-header flex-between">
+      <div className="screen-header flex-between" style={{ marginBottom: '2rem' }}>
         <div>
-          <h2>Final Review</h2>
-          <p>Check how your content will look across platforms.</p>
+          <h2>Automation Complete</h2>
+          <p>Your content has been successfully processed by the automation flow.</p>
         </div>
         <div className="header-actions">
-          <button className="btn btn-secondary" onClick={onBack}>
-            <ArrowLeft size={18} /> Go Back
-          </button>
-          <button 
-            className="btn btn-primary" 
-            onClick={handlePublish}
-            disabled={publishing}
-          >
-            {publishing ? (
-              <><div className="spinner"></div> Publishing...</>
-            ) : (
-              <><Send size={18} /> Confirm & Publish</>
-            )}
+          <button className="btn btn-primary" onClick={onNew}>
+            <RefreshCw size={18} /> Start New
           </button>
         </div>
       </div>
 
-      <div className="preview-panels">
-        {/* LinkedIn Panel */}
-        <div className="card platform-panel">
-          <div className="panel-header linkedin-header">
-            <Linkedin size={20} /> LinkedIn Post
+      <div className="preview-panels" style={{ flexWrap: 'wrap' }}>
+        {Object.keys(safeContent).length === 0 ? (
+          <div className="card platform-panel" style={{ padding: '2rem', textAlign: 'center' }}>
+            <p>Execution finished, but no content was returned by the webhook.</p>
           </div>
-          <div className="panel-content">
-            <div className="mock-post">
-              <div className="mock-author">
-                <div className="mock-avatar"></div>
-                <div className="mock-meta">
-                  <div className="mock-name">John Doe</div>
-                  <div className="mock-time">Just now • 🌐</div>
+        ) : hasSpecifics ? (
+          <>
+            {linkedinContent && (
+              <div className="card platform-panel" style={{ flex: '1 1 300px' }}>
+                <div className="panel-header linkedin-header">
+                  <Linkedin size={20} /> LinkedIn
+                </div>
+                <div className="panel-content">
+                  <div className="mock-post" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
+                    {typeof linkedinContent === 'object' 
+                      ? (linkedinContent.post || JSON.stringify(linkedinContent, null, 2))
+                      : String(linkedinContent)}
+                  </div>
                 </div>
               </div>
-              <p>Is your personal brand lost in the noise? Here is why most professionals fail at standing out in 2026.</p>
-              <br/>
-              <p>The problem isn't lack of content. It's the "sea of sameness". Everyone is utilizing the same AI tools to write the same 10 tips.</p>
-              <br/>
-              <p>To win, you must become a Problem Framer.</p>
-              <p>#PersonalBranding #Marketing #Career</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Twitter Panel */}
-        <div className="card platform-panel">
-          <div className="panel-header twitter-header">
-            <Twitter size={20} /> Twitter Thread
-          </div>
-          <div className="panel-content">
-            <div className="mock-thread">
-              <div className="mock-tweet">
-                <div className="tweet-number">1/5</div>
-                <p>Is your personal brand lost in the noise? Here is why most professionals fail at standing out in 2026. 🧵👇</p>
+            )}
+            
+            {twitterContent && (
+              <div className="card platform-panel" style={{ flex: '1 1 300px' }}>
+                <div className="panel-header twitter-header">
+                  <Twitter size={20} /> Twitter
+                </div>
+                <div className="panel-content">
+                  <div className="mock-post" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
+                    {typeof twitterContent === 'object' 
+                      ? (Array.isArray(twitterContent.tweets) 
+                          ? twitterContent.tweets.join('\n\n') 
+                          : JSON.stringify(twitterContent, null, 2))
+                      : String(twitterContent)}
+                  </div>
+                </div>
               </div>
-              <div className="mock-tweet">
-                <div className="tweet-number">2/5</div>
-                <p>The problem isn't lack of content. It's the "sea of sameness". Everyone is utilizing the same AI tools to write the same 10 tips. The market is saturated with mediocrity.</p>
+            )}
+            
+            {emailContent && (
+              <div className="card platform-panel" style={{ flex: '1 1 300px' }}>
+                <div className="panel-header email-header">
+                  <Mail size={20} /> Email
+                </div>
+                <div className="panel-content email-content" style={{ padding: 0 }}>
+                  <div className="mock-post" style={{ padding: '1.5rem', border: 'none', boxShadow: 'none' }}>
+                    {typeof emailContent === 'object' ? (
+                      <>
+                        {emailContent.subject_line && (
+                          <div className="email-subject">
+                            <span className="label">Subject:</span> {emailContent.subject_line}
+                          </div>
+                        )}
+                        <div className="email-body">
+                          {emailContent.body_html ? (
+                            <div dangerouslySetInnerHTML={{ __html: emailContent.body_html }} style={{ lineHeight: '1.6' }} />
+                          ) : (
+                            <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'var(--font-family)', margin: 0 }}>
+                              {JSON.stringify(emailContent, null, 2)}
+                            </pre>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      String(emailContent)
+                    )}
+                  </div>
+                </div>
               </div>
-              <div className="mock-tweet">
-                <div className="tweet-number">3/5</div>
-                <p>To win, you must become a Problem Framer. Stop giving generic solutions. Start defining the problem better than your audience can themselves.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Email Panel */}
-        <div className="card platform-panel">
-          <div className="panel-header email-header">
-            <Mail size={20} /> Email Newsletter
-          </div>
-          <div className="panel-content email-content">
-            <div className="email-subject">
-              <span className="label">Subject:</span> You're probably doing personal branding wrong (here's why)
-            </div>
-            <div className="email-body">
-              <p>Hey {"{{first_name}}"},</p>
-              <p>Is your personal brand lost in the noise?</p>
-              <p>I was looking at the content landscape for 2026 yesterday, and I noticed a terrifying trend: The "sea of sameness".</p>
-              <p>Everyone is utilizing the same tools to write the same generic tips. To win today, you must become a Problem Framer. Let's break down exactly how you can do that this week.</p>
-              <p>Best,</p>
-              <p>John</p>
-            </div>
-          </div>
-        </div>
+            )}
+          </>
+        ) : (
+          renderGenericPanels()
+        )}
       </div>
     </div>
   );
