@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { ChevronDown, Clock, Send } from 'lucide-react';
+import { ENDPOINTS, API_HEADERS } from '../config/constants';
 
 interface DraftReviewProps {
   drafts: any[];
-  onNext: () => void;
+  runId: string | null;
+  onNext: (data: any) => void;
 }
 
-const DraftReview: React.FC<DraftReviewProps> = ({ drafts, onNext }) => {
+const DraftReview: React.FC<DraftReviewProps> = ({ drafts, runId, onNext }) => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [actionType, setActionType] = useState('publish_now');
   const [loading, setLoading] = useState(false);
@@ -19,20 +21,18 @@ const DraftReview: React.FC<DraftReviewProps> = ({ drafts, onNext }) => {
     setError('');
 
     try {
-      const response = await fetch('https://cohort2pod2.app.n8n.cloud/webhook-test/draft-select', {
+      const response = await fetch(ENDPOINTS.DRAFT_SELECT, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': '9217ecf1e7bbe35df15abfc3b26920d12c7f3a5cbc44ef05ec79cf15432f06fd'
-        },
-        body: JSON.stringify({ draftId: selectedId, actionType })
+        headers: API_HEADERS,
+        body: JSON.stringify({ draftId: selectedId, actionType, run_id: runId })
       });
 
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
 
-      onNext();
+      const data = await response.json();
+      onNext(data);
     } catch (err) {
       setError('Failed to approve draft. Please try again.');
     } finally {
