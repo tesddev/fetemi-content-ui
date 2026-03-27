@@ -1,7 +1,7 @@
 export const CONFIG = {
   // Set to true to use live endpoints, false for test endpoints
-  IS_LIVE: false,
-  API_KEY: '9217ecf1e7bbe35df15abfc3b26920d12c7f3a5cbc44ef05ec79cf15432f06fd',
+  IS_LIVE: true,
+  API_KEY: import.meta.env.VITE_N8N_API_KEY,
 };
 
 const BASE_URL_LIVE = 'https://cohort2pod2.app.n8n.cloud/webhook';
