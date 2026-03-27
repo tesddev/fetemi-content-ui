@@ -6,6 +6,8 @@ import ReviewPublish from './screens/ReviewPublish';
 function App() {
   const [currentScreen, setCurrentScreen] = useState(1);
   const [drafts, setDrafts] = useState<any[]>([]);
+  const [runId, setRunId] = useState<string | null>(null);
+  const [publishedContent, setPublishedContent] = useState<any>(null);
 
   return (
     <div className="app-container">
@@ -21,13 +23,13 @@ function App() {
           </div>
           <div className={`step-connector ${currentScreen >= 3 ? 'active' : ''}`}></div>
           <div className={`step ${currentScreen === 3 ? 'active' : ''}`}>
-            <span>3</span> Publish
+            <span>3</span> Complete
           </div>
         </nav>
       </header>
 
       <main className="app-main">
-        {currentScreen === 1 && <ContentInput onNext={(data) => { 
+        {currentScreen === 1 && <ContentInput onNext={(data) => {
           let parsedDrafts: any[] = [];
           if (Array.isArray(data)) {
             parsedDrafts = data;
@@ -51,11 +53,20 @@ function App() {
               parsedDrafts = [data];
             }
           }
-          setDrafts(parsedDrafts); 
-          setCurrentScreen(2); 
+          setRunId(data?.run_id || null);
+          setDrafts(parsedDrafts);
+          setCurrentScreen(2);
         }} />}
-        {currentScreen === 2 && <DraftReview drafts={drafts} onNext={() => setCurrentScreen(3)} />}
-        {currentScreen === 3 && <ReviewPublish onBack={() => setCurrentScreen(2)} />}
+        {currentScreen === 2 && <DraftReview drafts={drafts} runId={runId} onNext={(data: any) => {
+          setPublishedContent(data);
+          setCurrentScreen(3);
+        }} />}
+        {currentScreen === 3 && <ReviewPublish content={publishedContent} onNew={() => {
+          setCurrentScreen(1);
+          setDrafts([]);
+          setRunId(null);
+          setPublishedContent(null);
+        }} />}
       </main>
     </div>
   );
