@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Sparkles, Link as LinkIcon, FileText } from 'lucide-react';
+import { ENDPOINTS, API_HEADERS } from '../config/constants';
 
 interface ContentInputProps {
   onNext: (data: any) => void;
@@ -22,13 +23,9 @@ const ContentInput: React.FC<ContentInputProps> = ({ onNext }) => {
     setLoading(true);
 
     try {
-      // const response = await fetch('https://cohort2pod2.app.n8n.cloud/webhook/content-submit', {
-      const response = await fetch('https://cohort2pod2.app.n8n.cloud/webhook-test/content-submit', {
+      const response = await fetch(ENDPOINTS.CONTENT_SUBMIT, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': '9217ecf1e7bbe35df15abfc3b26920d12c7f3a5cbc44ef05ec79cf15432f06fd'
-        },
+        headers: API_HEADERS,
         body: JSON.stringify({ contentIdea, url })
       });
 
